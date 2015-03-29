@@ -41,6 +41,46 @@ public class SubImageView extends JLabel {
         int x2 = (this.getWidth() + this.getIcon().getIconWidth()) / 2;
         int y2 = (this.getHeight() + this.getIcon().getIconHeight()) / 2;
 
+        System.out.println("icon pos: " + Gui.iconPosX);
+
+        if (Gui.iconPosX < Gui.ICON_MARGIN_PIXELS) {
+            int shift = (Gui.ICON_MARGIN_PIXELS - Gui.iconPosX) * Gui.scaleFactor;
+            x1 -= shift;
+            x2 -= shift;
+        }
+
+        if (Gui.iconPosY < Gui.ICON_MARGIN_PIXELS) {
+            int shift = (Gui.ICON_MARGIN_PIXELS - Gui.iconPosY) * Gui.scaleFactor;
+            y1 -= shift;
+            y2 -= shift;
+        }
+
+        System.out.println("icon pos: " + Gui.iconPosX + ", width=" + Gui.iconWidth + ", image width=" + Gui.imageWidth);
+
+
+        if ((Gui.imageWidth - (Gui.iconPosX + Gui.iconWidth) - 1) <= Gui.ICON_MARGIN_PIXELS) {
+            int shift = (Gui.ICON_MARGIN_PIXELS - (Gui.imageWidth - (Gui.iconPosX + Gui.iconWidth)) + 2) * Gui.scaleFactor;
+            //x1 += shift;
+            x2 += shift;
+        }
+
+        if ((Gui.imageHeight - (Gui.iconPosY + Gui.iconHeight) - 1) <= Gui.ICON_MARGIN_PIXELS) {
+            int shift = (Gui.ICON_MARGIN_PIXELS - (Gui.imageHeight - (Gui.iconPosY + Gui.iconHeight)) + 2) * Gui.scaleFactor;
+            //x1 += shift;
+            y2 += shift;
+        }
+
+
+/*
+        if (Gui.iconPosY == 0) {
+            x1 -= 2;
+            x2 -= 2;
+        }
+        if (Gui.iconPosX == 1) {
+            x1 -= 1;
+            x2 -= 1;
+        }
+        */
         // left
         g2d.drawLine(x1 + offset, y1 + offset, x1+offset, y2-offset);
         // top

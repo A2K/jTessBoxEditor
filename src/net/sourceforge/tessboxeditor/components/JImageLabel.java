@@ -15,11 +15,14 @@
  */
 package net.sourceforge.tessboxeditor.components;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import net.sourceforge.tessboxeditor.datamodel.*;
+import net.sourceforge.tessboxeditor.datamodel.TessBox;
+import net.sourceforge.tessboxeditor.datamodel.TessBoxCollection;
 import net.sourceforge.vietocr.util.Utils;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class JImageLabel extends JLabel {
 

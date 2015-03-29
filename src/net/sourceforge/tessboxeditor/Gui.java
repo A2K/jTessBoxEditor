@@ -38,6 +38,7 @@ import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.dnd.DropTarget;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -59,6 +60,14 @@ public class Gui extends javax.swing.JFrame {
     public static int ICON_MARGIN_PIXELS = 3;
     public static boolean invertControls = false;
     public static int scaleFactor = 4;
+    public static int iconPosX = 0;
+    public static int iconPosY = 0;
+    public static int iconWidth = 0;
+    public static int iconHeight = 0;
+    public static int imageWidth = 0;
+    public static int imageHeight = 0;
+    public static int movementMultiplier = 1;
+
     public static final String APP_NAME = "jTessBoxEditor";
     public static final String TO_BE_IMPLEMENTED = "To be implemented in subclass";
     final String[] headers = {"Char", "X", "Y", "Width", "Height"};
@@ -232,6 +241,25 @@ public class Gui extends javax.swing.JFrame {
         jLabelCharacter = new javax.swing.JLabel();
         jTextFieldCharacter = new javax.swing.JTextField();
         jTextFieldCharacter.setDocument(new LimitedLengthDocument(12));
+        jTextFieldCharacter.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE || e.getKeyCode() == KeyEvent.VK_ENTER)
+                {
+                    jLabelSubimage.requestFocus();
+                }
+            }
+        });
         jButtonConvert = new javax.swing.JButton();
         jLabelX = new javax.swing.JLabel();
         jSpinnerX = new javax.swing.JSpinner();
@@ -786,12 +814,33 @@ public class Gui extends javax.swing.JFrame {
                             Rectangle rect = curBox.getRect();
                             try {
 
+                                Gui.iconPosX = rect.x;
+                                Gui.iconPosY = rect.y;
+
                                 BufferedImage fullImage = ((BufferedImage) ((ImageIcon) icon).getImage());
+
+                                Gui.imageWidth = fullImage.getWidth();
+                                Gui.imageHeight = fullImage.getHeight();
+
+                                Gui.iconHeight = rect.height;
+                                Gui.iconWidth = rect.width;
+
+                                int height = Gui.iconHeight + Gui.ICON_MARGIN_PIXELS * 2;
+                                int width = Gui.iconWidth +  Gui.ICON_MARGIN_PIXELS * 2;
+
+                                while(width + Gui.iconPosX > fullImage.getWidth() +1) {
+                                    width -= 1;
+                                }
+
+                                while(height + Gui.iconPosY > fullImage.getHeight() + 1) {
+                                    height -= 1;
+                                }
+
                                 BufferedImage subImage = fullImage.getSubimage(
-                                        Math.max(0, rect.x - ICON_MARGIN_PIXELS),
-                                        Math.max(0, rect.y - ICON_MARGIN_PIXELS),
-                                        Math.min(fullImage.getWidth(), rect.width + ICON_MARGIN_PIXELS * 2),
-                                        Math.min(fullImage.getHeight(), rect.height + ICON_MARGIN_PIXELS * 2)
+                                        Math.max(0, Math.min(Gui.imageWidth - 1, Gui.iconPosX - Gui.ICON_MARGIN_PIXELS)),
+                                        Math.max(0, Math.min(Gui.imageHeight - 1, Gui.iconPosY - Gui.ICON_MARGIN_PIXELS)),
+                                        width,
+                                        height
                                 );
 
                                 ImageIconScalable subIcon = new ImageIconScalable(subImage);
@@ -1327,29 +1376,29 @@ public class Gui extends javax.swing.JFrame {
 
             private void inc(JSpinner s) {
                 if (s == jSpinnerX || s == jSpinnerY) {
-                    if (invertControls) {
-                        s.setValue(Math.max(0, ((Integer) s.getValue()) - 1));
+                    if (!invertControls) {
+                        s.setValue(Math.max(0, ((Integer) s.getValue()) - movementMultiplier));
                     } else {
-                        s.setValue(((Integer) s.getValue()) + 1);
+                        s.setValue(((Integer) s.getValue()) + movementMultiplier);
                     }
                 } else {
-                    s.setValue(((Integer) s.getValue()) + 1);
+                    s.setValue(((Integer) s.getValue()) + movementMultiplier);
                 }
             }
 
             private void inc(JSpinner s, int max) {
-                if ((s == jSpinnerX || s == jSpinnerY) && invertControls) {
-                    s.setValue(Math.max(0, ((Integer) s.getValue()) - 1));
+                if ((s == jSpinnerX || s == jSpinnerY) && !invertControls) {
+                    s.setValue(Math.max(0, ((Integer) s.getValue()) - movementMultiplier));
                 } else {
-                    s.setValue(((Integer) s.getValue()) + 1);
+                    s.setValue(((Integer) s.getValue()) + movementMultiplier);
                 }
             }
 
             private void dec(JSpinner s) {
-                if ((s == jSpinnerX || s == jSpinnerY) && invertControls) {
-                    s.setValue(((Integer) s.getValue()) + 1);
+                if ((s == jSpinnerX || s == jSpinnerY) && !invertControls) {
+                    s.setValue(((Integer) s.getValue()) + movementMultiplier);
                 } else {
-                    s.setValue(Math.max(0, ((Integer) s.getValue()) - 1));
+                    s.setValue(Math.max(0, ((Integer) s.getValue()) - movementMultiplier));
                 }
             }
 
@@ -1360,6 +1409,14 @@ public class Gui extends javax.swing.JFrame {
                     return false;
                 }
 
+                Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+
+                if ( (focusOwner instanceof JSpinner)
+                    || (focusOwner instanceof JTextField)) {
+                    return false;
+                }
+
+
                 if (jLabelCharacter.hasFocus()) {
                     return false;
                 }
@@ -1368,26 +1425,38 @@ public class Gui extends javax.swing.JFrame {
                     return false;
                 }
 
-                if (e.getKeyChar() == 'w') {
+                if (e.isShiftDown()) {
+                    movementMultiplier = 10;
+                }
+                else {
+                    movementMultiplier = 1;
+
+                }
+
+                char c = Character.toLowerCase(e.getKeyChar());
+
+                if (c == 'w') {
                     inc(jSpinnerY);
-                } else if (e.getKeyChar() == 's') {
+                } else if (c == 's') {
                     dec(jSpinnerY);
-                } else if (e.getKeyChar() == 'd') {
+                } else if (c == 'd') {
                     dec(jSpinnerX);
-                } else if (e.getKeyChar() == 'a') {
+                } else if (c == 'a') {
                     inc(jSpinnerX);
-                } else if (e.getKeyChar() == 'q') {
+                } else if (c == 'q') {
                     dec(jSpinnerW);
-                } else if (e.getKeyChar() == 'e') {
+                } else if (c == 'e') {
                     inc(jSpinnerW);
-                } else if (e.getKeyChar() == 'r') {
+                } else if (c == 'r') {
                     dec(jSpinnerH);
-                } else if (e.getKeyChar() == 'f') {
+                } else if (c == 'f') {
                     inc(jSpinnerH);
-                } else if (e.getKeyChar() == ',') {
+                } else if (c == ',') {
                     jButtonPrev.doClick();
-                } else if (e.getKeyChar() == '.') {
+                } else if (c == '.') {
                     jButtonNext.doClick();
+                } else if (c == 'x') {
+                    jTextFieldCharacter.requestFocus();
                 } else {
                     return false;
                 }

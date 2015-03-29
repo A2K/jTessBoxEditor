@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 
 public class GuiWithSpinner extends GuiWithEdit {
     private final static Logger logger = Logger.getLogger(GuiWithSpinner.class.getName());
+
     @Override
     void stateChanged(javax.swing.event.ChangeEvent evt) {
         if (tableSelectAction) {
@@ -62,13 +63,35 @@ public class GuiWithSpinner extends GuiWithEdit {
         }
 
         Icon icon = jLabelImage.getIcon();
+
         try {
+            Gui.iconPosX = rect.x;
+            Gui.iconPosY = rect.y;
+
             BufferedImage fullImage = ((BufferedImage) ((ImageIcon) icon).getImage());
+
+            Gui.imageWidth = fullImage.getWidth();
+            Gui.imageHeight = fullImage.getHeight();
+
+            Gui.iconHeight = rect.height;
+            Gui.iconWidth = rect.width;
+
+            int height = Gui.iconHeight + Gui.ICON_MARGIN_PIXELS * 2;
+            int width = Gui.iconWidth +  Gui.ICON_MARGIN_PIXELS * 2;
+
+            while(width + Gui.iconPosX > fullImage.getWidth() +1) {
+                width -= 1;
+            }
+
+            while(height + Gui.iconPosY > fullImage.getHeight() + 1) {
+                height -= 1;
+            }
+
             BufferedImage subImage = fullImage.getSubimage(
-                    Math.max(0, rect.x - Gui.ICON_MARGIN_PIXELS),
-                    Math.max(0, rect.y - Gui.ICON_MARGIN_PIXELS),
-                    Math.min(fullImage.getWidth(), rect.width + Gui.ICON_MARGIN_PIXELS * 2),
-                    Math.min(fullImage.getHeight(), rect.height + Gui.ICON_MARGIN_PIXELS * 2)
+                    Math.max(0, Math.min(Gui.imageWidth - 1, Gui.iconPosX - Gui.ICON_MARGIN_PIXELS)),
+                    Math.max(0, Math.min(Gui.imageHeight - 1, Gui.iconPosY - Gui.ICON_MARGIN_PIXELS)),
+                    width,
+                    height
             );
 
             ImageIconScalable subIcon = new ImageIconScalable(subImage);
